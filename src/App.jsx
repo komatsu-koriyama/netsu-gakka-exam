@@ -6,8 +6,8 @@ const AUTH_STORAGE_KEY = "kikaiGakkaExamAuthenticated";
 const AUTH_PASSWORD = "koriyamakikai";
 const SHOW_DEBUG_INFO = false;
 
-const TRUE_FALSE_SCORE = 0.2;
-const MULTIPLE_CHOICE_SCORE = 0.4;
+const TRUE_FALSE_SCORE = 0.3;
+const MULTIPLE_CHOICE_SCORE = 0.3;
 
 const LOW_ACCURACY_THRESHOLD = 70;
 
@@ -231,15 +231,20 @@ function App() {
     const selectedCategorySet = new Set(setupCategories);
 
     const pool = questions.filter((question) => {
-      if (question.type !== setupType) return false;
+  if (question.type !== setupType) return false;
 
-      if (selectedCategorySet.size > 0) {
-        const category = normalizeText(question.category);
-        if (!selectedCategorySet.has(category)) return false;
-      }
+  // 択一はカテゴリ無視
+  if (setupType === "multiple_choice") {
+    return true;
+  }
 
-      return true;
-    });
+  if (selectedCategorySet.size > 0) {
+    const category = normalizeText(question.category);
+    if (!selectedCategorySet.has(category)) return false;
+  }
+
+  return true;
+});
 
     const count = clampNumber(Number(setupCount), 1, pool.length || 1);
     const ordered = orderQuestions(pool, setupOrder, history);
@@ -259,25 +264,39 @@ function App() {
   }
 
   function startMockExam() {
-    const targetQuestions = questions.filter((question) => !question.isCalculation);
-    const trueFalsePool = targetQuestions.filter((question) => question.type === "true_false");
-    const multipleChoicePool = targetQuestions.filter((question) => question.type === "multiple_choice");
+  const targetQuestions = questions.filter((q) => !q.isCalculation);
 
-    const trueFalseSelected =
-      trueFalsePool.length >= 60 ? stratifiedSampleByCategory(trueFalsePool, 60) : shuffleArray(trueFalsePool);
+  const TOTAL_QUESTIONS = 100;
 
-    const multipleChoiceSelected =
-      multipleChoicePool.length >= 10
-        ? stratifiedSampleByCategory(multipleChoicePool, 10)
-        : shuffleArray(multipleChoicePool);
+  // カテゴリごとに分割
+  const categoryMap = new Map();
+  targetQuestions.forEach((q) => {
+    const category = normalizeText(q.category) || "未分類";
+    if (!categoryMap.has(category)) {
+      categoryMap.set(category, []);
+    }
+    categoryMap.get(category).push(q);
+  });
 
-    const selected = [...trueFalseSelected, ...multipleChoiceSelected];
+  const totalCount = targetQuestions.length;
 
-    startSession({
-      nextMode: "mock_exam",
-      selectedQuestions: selected,
-    });
-  }
+  let selected = [];
+
+  categoryMap.forEach((list) => {
+    const ratio = list.length / totalCount;
+    const count = Math.round(TOTAL_QUESTIONS * ratio);
+
+    const shuffled = shuffleArray(list);
+    selected = selected.concat(shuffled.slice(0, count));
+  });
+
+  selected = shuffleArray(selected).slice(0, TOTAL_QUESTIONS);
+
+  startSession({
+    nextMode: "mock_exam",
+    selectedQuestions: selected,
+  });
+}
 
   function startWrongReview() {
     const wrongIds = new Set(history.wrongQuestionIds ?? []);
@@ -1104,41 +1123,41 @@ function SetupScreen({
       </div>
 
       <section className="panel">
-        <div className="category-select-panel">
-          <div className="category-select-header">
-            <div>
-              <h3>カテゴリ</h3>
-              <p className="muted-text">
-                複数選択できます。未選択の場合は、すべてのカテゴリから出題します。
-              </p>
+        {setupType !== "multiple_choice" && (
+          <div className="category-select-panel">
+            <div className="category-select-header">
+              <div>
+                <h3>カテゴリ</h3>
+                <p className="muted-text">
+                  複数選択できます。未選択の場合は、すべてのカテゴリから出題します。
+                </p>
+              </div>
+              <button className="ghost-button small" onClick={onClearCategories} disabled={isAllSelected}>
+                すべてに戻す
+              </button>
             </div>
 
-            <button className="ghost-button small" onClick={onClearCategories} disabled={isAllSelected}>
-              すべてに戻す
+            <button
+              type="button"
+              className={`category-all-button ${isAllSelected ? "active" : ""}`}
+              onClick={onClearCategories}
+            >
+              すべてのカテゴリ
             </button>
+
+            <div className="category-checkbox-grid">
+              {categories.map((category) => {
+                const checked = setupCategories.includes(category);
+                return (
+                  <label key={category} className={`category-check-button ${checked ? "checked" : ""}`}>
+                    <input type="checkbox" checked={checked} onChange={() => onToggleCategory(category)} />
+                    <span>{category}</span>
+                  </label>
+                );
+              })}
+            </div>
           </div>
-
-          <button
-            type="button"
-            className={`category-all-button ${isAllSelected ? "active" : ""}`}
-            onClick={onClearCategories}
-          >
-            すべてのカテゴリ
-          </button>
-
-          <div className="category-checkbox-grid">
-            {categories.map((category) => {
-              const checked = setupCategories.includes(category);
-
-              return (
-                <label key={category} className={`category-check-button ${checked ? "checked" : ""}`}>
-                  <input type="checkbox" checked={checked} onChange={() => onToggleCategory(category)} />
-                  <span>{category}</span>
-                </label>
-              );
-            })}
-          </div>
-        </div>
+        )}
 
         <label className="form-field">
           <span>出題順</span>

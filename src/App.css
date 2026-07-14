@@ -2239,3 +2239,24 @@ tr:last-child td {
     gap: 4px;
   }
 }
+
+/* ====== 5択対応：選択肢UI改善 ====== */
+
+.choice-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.choice-button {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  min-height: 50px;
+  border-radius: 6px;
+}
+
+/* スマホで押しやすくする */
+.choice-button:hover {
+  opacity: 0.9;
+}

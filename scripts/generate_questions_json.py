@@ -7,7 +7,7 @@ from openpyxl import load_workbook
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 
-INPUT_EXCEL = BASE_DIR / "data" / "question_master.xlsx"
+INPUT_EXCEL = BASE_DIR / "data" / "netsu_question_master.xlsx"
 OUTPUT_JSON = BASE_DIR / "public" / "data" / "questions.json"
 SHEET_NAME = "問題マスター"
 
@@ -22,14 +22,16 @@ REQUIRED_COLUMNS = [
     "tags",
     "question",
     "imageFile",
-    "choiceA",
-    "choiceB",
-    "choiceC",
-    "choiceD",
-    "choiceAExplanation",
-    "choiceBExplanation",
-    "choiceCExplanation",
-    "choiceDExplanation",
+    "choice1",
+    "choice2",
+    "choice3",
+    "choice4",
+    "choice5",
+    "choice1Explanation",
+    "choice2Explanation",
+    "choice3Explanation",
+    "choice4Explanation",
+    "choice5Explanation",
     "answer",
     "explanation",
     "explanationImageFile",
@@ -156,20 +158,20 @@ def build_true_false_question(row):
 def build_multiple_choice_question(row):
     answer = str(get_cell(row, "answer")).strip().upper()
 
-    if answer not in ["A", "B", "C", "D"]:
+    if answer not in ["1", "2", "3", "4", "5"]:
         raise ValueError(
-            f"{get_cell(row, 'id')}: multiple_choice問題のanswerは A/B/C/D のいずれかにしてください。"
+            f"{get_cell(row, 'id')}: multiple_choice問題のanswerは 1/2/3/4/5 のいずれかにしてください。"
         )
 
     choices = []
 
-    for key in ["A", "B", "C", "D"]:
+    for key in ["1", "2", "3", "4","5"]:
         choice_text = get_cell(row, f"choice{key}")
         choice_explanation = get_cell(row, f"choice{key}Explanation")
 
         if not choice_text:
             raise ValueError(
-                f"{get_cell(row, 'id')}: choice{key} が空欄です。択一問題ではA～Dをすべて入力してください。"
+                f"{get_cell(row, 'id')}: choice{key} が空欄です。択一問題では1～5をすべて入力してください。"
             )
 
         choices.append(
