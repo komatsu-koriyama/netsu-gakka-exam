@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import "./App.css";
 
-const HISTORY_STORAGE_KEY = "kikaiGakkaExamLearningHistory";
-const AUTH_STORAGE_KEY = "kikaiGakkaExamAuthenticated";
-const AUTH_PASSWORD = "koriyamakikai";
+const HISTORY_STORAGE_KEY = "netsuGakkaExamLearningHistory";
+const AUTH_STORAGE_KEY = "netsuGakkaExamAuthenticated";
+const AUTH_PASSWORD = "koriyamanetsu";
 const SHOW_DEBUG_INFO = false;
 
 const TRUE_FALSE_SCORE = 0.3;
@@ -13,37 +13,19 @@ const LOW_ACCURACY_THRESHOLD = 70;
 
 const APP_VERSION = "0.7.8";
 const APP_UPDATED_AT = "2026-07-14";
-const APP_SPEC_NOTE = "計算問題は現段階では除外";
+const APP_SPEC_NOTE = "出題カテゴリは問題数比率によって設定";
 
-const GUIDELINE_PDF_PATH = `${import.meta.env.BASE_URL}docs/FY2026_kikai_guidline.pdf`;
+const GUIDELINE_PDF_PATH = `${import.meta.env.BASE_URL}docs/FY2026_netsu_guidline.pdf`;
 
 const APP_CHANGELOG = [
   {
     version: "v0.7.8",
     date: "2026-07-14",
     changes: [
-      "更新履歴ページを追加",
-      "要領書確認ページを追加",
-      "PDF形式の競技実施要領書をアプリ内から確認可能に変更",
+      "熱処理学科試験用に変更",
     ],
   },
-  {
-    version: "v0.7.7",
-    date: "2026-07-09",
-    changes: [
-      "学習履歴リセットをホーム画面へ移動",
-      "学習履歴画面からリセット機能を削除",
-      "全履歴リセット、本番模擬履歴のみリセット、誤答復習対象のみクリアを選択可能に変更",
-    ],
-  },
-  {
-    version: "v0.7.6",
-    date: "2026-07-09",
-    changes: [
-      "学習履歴画面をスマートフォン向けカード表示に対応",
-      "本番模擬の点数推移をスマートフォンで見やすく改善",
-    ],
-  },
+    
 ];
 
 const DEFAULT_HISTORY = {
@@ -90,7 +72,7 @@ function App() {
 
   const [setupType, setSetupType] = useState(null);
   const [setupCategories, setSetupCategories] = useState([]);
-  const [setupCount, setSetupCount] = useState(10);
+  const [setupCount, setSetupCount] = useState(5);
   const [setupOrder, setSetupOrder] = useState("random");
   const [wrongReviewOrder, setWrongReviewOrder] = useState("low_accuracy");
 
@@ -208,7 +190,7 @@ function App() {
   function openSetup(type) {
     setSetupType(type);
     setSetupCategories([]);
-    setSetupCount(10);
+    setSetupCount(5);
     setSetupOrder("random");
     setScreen("setup");
   }
@@ -257,7 +239,7 @@ function App() {
   }
 
   function startMockExamWithConfirm() {
-    const ok = window.confirm("本番模擬を開始します。70問構成です。よろしいですか？");
+    const ok = window.confirm("本番模擬を開始します。100問構成です。よろしいですか？");
     if (!ok) return;
 
     startMockExam();
@@ -748,7 +730,7 @@ function App() {
       <header className="app-header">
         <div>
           <p className="app-kicker">技能競技大会</p>
-          <h1>機械部門 学科試験</h1>
+          <h1>熱処理部門 学科試験</h1>
         </div>
         <div className="header-badge">
           <span>問題数</span>
@@ -887,7 +869,7 @@ function AuthScreen({ onAuthenticate }) {
       <main className="auth-card">
         <div>
           <p className="app-kicker">技能競技大会</p>
-          <h1>機械部門 学科試験</h1>
+          <h1>熱処理部門 学科試験</h1>
           <p className="auth-description">利用を開始するにはパスワードを入力してください。</p>
         </div>
 
@@ -978,7 +960,7 @@ function MenuScreen({
 
           <button className="menu-button accent" onClick={onStartMockExam}>
             <span>本番模擬</span>
-            <small>○×60問＋択一10問</small>
+            <small>100問（カテゴリ比率で出題）</small>
           </button>
 
           <button className="menu-button review" onClick={onStartWrongReview} disabled={!canStartWrongReview}>
@@ -2211,7 +2193,7 @@ function GuidelineScreen({ pdfPath, onBack }) {
         </div>
 
         <p className="muted-text">
-          要領書では学科試験は80問構成とされていますが、現在のアプリでは計算問題を除外し、○×60問＋択一10問を対象にしています。
+          要領書では学科試験は100問構成とされている。
         </p>
 
         <div className="pdf-viewer-wrap">

@@ -12,7 +12,7 @@
 }
 
 * {
-  box-sizing: border-box;
+box-sizing: border-box;
 }
 
 body {
@@ -1263,7 +1263,7 @@ tr:last-child td {
   }
 
   .history-table-wrap {
-    display: none;
+    display: block;
   }
 
   .history-card-list {
@@ -1740,7 +1740,7 @@ tr:last-child td {
   .result-category-table-wrap,
   .history-mock-table-wrap,
   .history-table-wrap {
-    display: none;
+    display: block;
   }
 
   .category-result-card-list,
