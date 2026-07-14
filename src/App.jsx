@@ -11,21 +11,24 @@ const MULTIPLE_CHOICE_SCORE = 0.3;
 
 const LOW_ACCURACY_THRESHOLD = 70;
 
-const APP_VERSION = "0.7.8";
+const APP_VERSION = "0.8.0";
 const APP_UPDATED_AT = "2026-07-14";
-const APP_SPEC_NOTE = "出題カテゴリは問題数比率によって設定";
+const APP_SPEC_NOTE = "熱処理部門用。模擬試験はカテゴリ比率で100問出題";
 
 const GUIDELINE_PDF_PATH = `${import.meta.env.BASE_URL}docs/FY2026_netsu_guidline.pdf`;
 
 const APP_CHANGELOG = [
   {
-    version: "v0.7.8",
+    version: "v0.8.0",
     date: "2026-07-14",
     changes: [
-      "熱処理学科試験用に変更",
+      "熱処理部門向けの表記に統一",
+      "非アクティブ問題を読み込み対象から除外",
+      "択一演習でもカテゴリ選択を利用できるよう修正",
+      "本番模擬のカテゴリ比率抽出処理を安定化",
+      "問題データのバージョン表示をschemaVersionにも対応",
     ],
   },
-    
 ];
 
 const DEFAULT_HISTORY = {
@@ -122,10 +125,10 @@ function App() {
         const meta = data?.meta ?? {};
         const loadedQuestions = Array.isArray(data?.questions) ? data.questions : [];
 
-        setQuestions(loadedQuestions.filter((question) => question));
+        setQuestions(loadedQuestions.filter((question) => question && question.isActive !== false));
 
         setQuestionDataMeta({
-          version: normalizeText(data?.version) || normalizeText(meta.version),
+          version: normalizeText(data?.version) || normalizeText(meta.version) || normalizeText(data?.schemaVersion),
           updatedAt:
             normalizeText(data?.updatedAt) ||
             normalizeText(data?.generatedAt) ||
@@ -213,20 +216,15 @@ function App() {
     const selectedCategorySet = new Set(setupCategories);
 
     const pool = questions.filter((question) => {
-  if (question.type !== setupType) return false;
+      if (question.type !== setupType) return false;
 
-  // 択一はカテゴリ無視
-  if (setupType === "multiple_choice") {
-    return true;
-  }
+      if (selectedCategorySet.size > 0) {
+        const category = normalizeText(question.category);
+        if (!selectedCategorySet.has(category)) return false;
+      }
 
-  if (selectedCategorySet.size > 0) {
-    const category = normalizeText(question.category);
-    if (!selectedCategorySet.has(category)) return false;
-  }
-
-  return true;
-});
+      return true;
+    });
 
     const count = clampNumber(Number(setupCount), 1, pool.length || 1);
     const ordered = orderQuestions(pool, setupOrder, history);
@@ -246,39 +244,14 @@ function App() {
   }
 
   function startMockExam() {
-  const targetQuestions = questions.filter((q) => !q.isCalculation);
+    const targetQuestions = questions.filter((question) => question.isCalculation !== true);
+    const selected = stratifiedSampleByCategory(targetQuestions, 100);
 
-  const TOTAL_QUESTIONS = 100;
-
-  // カテゴリごとに分割
-  const categoryMap = new Map();
-  targetQuestions.forEach((q) => {
-    const category = normalizeText(q.category) || "未分類";
-    if (!categoryMap.has(category)) {
-      categoryMap.set(category, []);
-    }
-    categoryMap.get(category).push(q);
-  });
-
-  const totalCount = targetQuestions.length;
-
-  let selected = [];
-
-  categoryMap.forEach((list) => {
-    const ratio = list.length / totalCount;
-    const count = Math.round(TOTAL_QUESTIONS * ratio);
-
-    const shuffled = shuffleArray(list);
-    selected = selected.concat(shuffled.slice(0, count));
-  });
-
-  selected = shuffleArray(selected).slice(0, TOTAL_QUESTIONS);
-
-  startSession({
-    nextMode: "mock_exam",
-    selectedQuestions: selected,
-  });
-}
+    startSession({
+      nextMode: "mock_exam",
+      selectedQuestions: selected,
+    });
+  }
 
   function startWrongReview() {
     const wrongIds = new Set(history.wrongQuestionIds ?? []);
@@ -1105,8 +1078,7 @@ function SetupScreen({
       </div>
 
       <section className="panel">
-        {setupType !== "multiple_choice" && (
-          <div className="category-select-panel">
+        <div className="category-select-panel">
             <div className="category-select-header">
               <div>
                 <h3>カテゴリ</h3>
@@ -1139,7 +1111,6 @@ function SetupScreen({
               })}
             </div>
           </div>
-        )}
 
         <label className="form-field">
           <span>出題順</span>
