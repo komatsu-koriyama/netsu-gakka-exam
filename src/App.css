@@ -2260,3 +2260,83 @@ tr:last-child td {
 .choice-button:hover {
   opacity: 0.9;
 }
+
+/* ====== 学習履歴ページ レイアウト修正 ====== */
+.history-screen {
+  min-width: 0;
+}
+
+.history-screen .panel,
+.history-screen .summary-card,
+.history-question-card,
+.history-mock-card {
+  min-width: 0;
+}
+
+.history-table-wrap,
+.history-mock-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.history-table-wrap table,
+.history-mock-table-wrap table {
+  min-width: 920px;
+}
+
+.history-table-wrap td,
+.history-table-wrap th,
+.history-mock-table-wrap td,
+.history-mock-table-wrap th {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.history-table-wrap .wide-cell {
+  min-width: 360px;
+  max-width: 520px;
+}
+
+@media (max-width: 840px) {
+  .history-table-wrap,
+  .history-mock-table-wrap {
+    display: none;
+  }
+
+  .history-card-list,
+  .history-mock-card-list {
+    display: grid;
+    gap: 12px;
+    margin-top: 12px;
+  }
+}
+
+@media (min-width: 841px) {
+  .history-card-list,
+  .history-mock-card-list {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .history-filter-layout,
+  .history-option-filter-grid,
+  .history-category-filter,
+  .history-card-list,
+  .history-mock-card-list {
+    min-width: 0;
+  }
+
+  .history-question-card,
+  .history-mock-card {
+    overflow: hidden;
+  }
+
+  .history-card-question,
+  .history-card-head strong,
+  .history-card-head span,
+  .history-mock-card-head strong {
+    overflow-wrap: anywhere;
+  }
+}
